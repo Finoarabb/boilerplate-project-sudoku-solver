@@ -45,6 +45,8 @@ module.exports = function (app) {
     if (!puzzle) return res.send({ error: "Required field missing" });
     const stringValidator = solver.validate(puzzle);
     if (stringValidator !== true) return res.send({ error: stringValidator });
-    res.json({ solution: solver.solve(puzzle) });
+    // Solve
+    const solution =solver.solve(puzzle);
+    res.send({ solution: solver.solve(puzzle) });
   });
 };

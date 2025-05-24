@@ -36,14 +36,14 @@ class SudokuSolver {
     for (let i = 0; i < 9; i++) {
       cols.push(puzzleString.charAt(column + i * 9));
     }
-    cols[row] === value ? "." : cols[row];
+    cols[row] = cols[row] === value ? "." : cols[row];
     return !cols.includes(value);
   }
 
   checkRegionPlacement(puzzleString, row, column, value) {
     const rowStart = Math.floor(row / 3) * 3;
     const colStart = Math.floor(column / 3) * 3;
-    const region =
+    let region =
       puzzleString.slice(rowStart * 9 + colStart, rowStart * 9 + colStart + 3) +
       puzzleString.slice(
         (rowStart + 1) * 9 + colStart,
@@ -53,10 +53,11 @@ class SudokuSolver {
         (rowStart + 2) * 9 + colStart,
         (rowStart + 2) * 9 + colStart + 3
       );
-      if(region[row % 3 * 3 + column % 3] === value)
-        region.slice(0, row % 3*3 + column % 3)
-      + "."
-      + region.slice(row % 3*3 + column % 3 + 1);
+    if (region[(row % 3) * 3 + (column % 3)] === value)
+      region =
+        region.slice(0, (row % 3) * 3 + (column % 3)) +
+        "." +
+        region.slice((row % 3) * 3 + (column % 3) + 1);
     return !region.includes(value);
   }
 
@@ -69,9 +70,9 @@ class SudokuSolver {
       let result;
       for (let i = 1; i <= 9; i++) {
         if (
-          this.checkColPlacement(puzzleString,row, column, i.toString()) &&
+          this.checkColPlacement(puzzleString, row, column, i.toString()) &&
           this.checkRegionPlacement(puzzleString, row, column, i.toString()) &&
-          this.checkRowPlacement(puzzleString, row,column, i.toString())
+          this.checkRowPlacement(puzzleString, row, column, i.toString())
         ) {
           if (result) {
             result = 0;
@@ -91,7 +92,7 @@ class SudokuSolver {
     let result = puzzleString.split("");
     if (!result.includes(".")) return result.join("");
     const array = this.emptySpaces(result.join(""));
-    if (array.length === 0) return {error: "Puzzle cannot be solved"};
+    if (array.length === 0) return { error: "Puzzle cannot be solved" };
     array.forEach(({ index, value }) => {
       result[index] = value;
     });
