@@ -47,6 +47,6 @@ module.exports = function (app) {
     if (stringValidator !== true) return res.send({ error: stringValidator });
     // Solve
     const solution =solver.solve(puzzle);
-    res.send({ solution: solver.solve(puzzle) });
+    res.send({ solution});
   });
 };

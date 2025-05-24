@@ -61,42 +61,80 @@ class SudokuSolver {
     return !region.includes(value);
   }
 
-  emptySpaces(puzzleString) {
-    let emptySpaces = [];
+  onePossibleValue(puzzleString) {
+    let onePossibleSpaces = [];
     for (let i = 0; i < puzzleString.length; i++) {
       if (puzzleString[i].match(/[1-9]/)) continue;
+
       let row = Math.floor(i / 9);
-      let column = i % 9;
-      let result;
-      for (let i = 1; i <= 9; i++) {
+      let col = i % 9;
+      let possibleValue = null;
+
+      for (let j = 1; j <= 9; j++) {
+        let val = j.toString();
         if (
-          this.checkColPlacement(puzzleString, row, column, i.toString()) &&
-          this.checkRegionPlacement(puzzleString, row, column, i.toString()) &&
-          this.checkRowPlacement(puzzleString, row, column, i.toString())
+          this.checkRowPlacement(puzzleString, row, col, val) &&
+          this.checkColPlacement(puzzleString, row, col, val) &&
+          this.checkRegionPlacement(puzzleString, row, col, val)
         ) {
-          if (result) {
-            result = 0;
+          if (possibleValue !== null) {
+            // More than one possibility, skip this cell
+            possibleValue = null;
             break;
           }
-          result = i.toString();
+          possibleValue = val;
         }
       }
-      if (result != 0) emptySpaces.push({ index: i, value: result });
+
+      if (possibleValue !== null) {
+        onePossibleSpaces.push({ index: i, value: possibleValue });
+      }
     }
-    return emptySpaces;
+
+    return onePossibleSpaces;
+  }
+
+  guessValue(puzzleString) {
+    const arr = puzzleString.split("");
+    const index = arr.findIndex((char) => char === ".");
+    if (index === -1) return arr.join(""); // already solved
+
+    const row = Math.floor(index / 9);
+    const col = index % 9;
+
+    for (let i = 1; i <= 9; i++) {
+      const val = i.toString();
+      if (
+        this.checkRowPlacement(arr.join(""), row, col, val) &&
+        this.checkColPlacement(arr.join(""), row, col, val) &&
+        this.checkRegionPlacement(arr.join(""), row, col, val)
+      ) {
+        arr[index] = val;
+        const result = this.solve(arr.join(""));
+        if (typeof result === "string") return result; // successful path
+        arr[index] = "."; // backtrack
+      }
+    }
+
+    return false; // No valid guesses
   }
 
   solve(puzzleString) {
-    const isStringValid = this.validate(puzzleString);
-    if (isStringValid !== true) return isStringValid;
-    let result = puzzleString.split("");
-    if (!result.includes(".")) return result.join("");
-    const array = this.emptySpaces(result.join(""));
-    if (array.length === 0) return { error: "Puzzle cannot be solved" };
-    array.forEach(({ index, value }) => {
-      result[index] = value;
-    });
-    return this.solve(result.join(""));
+    const isValid = this.validate(puzzleString);
+    if (isValid !== true) return isValid;
+
+    if (!puzzleString.includes(".")) return puzzleString;
+
+    const forcedMoves = this.onePossibleValue(puzzleString);
+    if (forcedMoves.length > 0) {
+      const arr = puzzleString.split("");
+      forcedMoves.forEach(({ index, value }) => {
+        arr[index] = value;
+      });
+      return this.solve(arr.join("")); // keep solving
+    }
+
+    return this.guessValue(puzzleString); // fallback to guessing
   }
 }
 
